@@ -1,0 +1,51 @@
+#!/bin/bash
+
+cd ~/Desktop #Set directory to desktop, assuming parking_data.csv file is on desktop
+
+infrac () {
+	echo "Please see all unique parking infractions printed here"
+	cut -d, -f4 < $1 | sed 1d | sort | uniq #this is to print all unique parking infractions, sed 1d is to remove the 1st header row
+	return
+}
+#sed command used above is sourced from https://stackoverflow.com/questions/14562423/is-there-a-way-to-ignore-header-lines-in-a-unix-sort
+	
+infrac parking_data.csv #I put in this line to execute the function, this line can also be put in terminal to run function with other file names. As the file name is set up as a positional parameter. 
+
+calc () {
+count=0; total=0; for i in $( awk -F "," '{ print$5; }' $1 ) #-F "," tells awk comma is the separator, this line read all fine amounts. 
+	do 
+		total=$(($total+$i)) #for every line the awk read in the 5th column, it will add the amount to the total
+		((count++)) #and add one to the count
+	done
+echo "The average of all parking fines are" $(($total / $count)) #calculate total/count for average
+#Above code involving awk is sourced from https://earthly.dev/blog/awk-csv/, code on calculating average is sourced from https://linuxconfig.org/calculate-column-average-using-bash-shell
+Min=$(cut -d, -f5 < $1 | sed 1d | sort | head -n 1) #this sorts the data from smallest to biggest, and we are taking the first value (smallest). Header row removed.
+Max=$(cut -d, -f5 < $1 | sed 1d | sort | tail -n 1) #here we are taking the last value (biggest). Header row removed. 
+echo "The minimum fine amount is" $Min
+echo "The maximum fine amount is" $Max
+return
+}
+
+calc parking_data.csv #please see comment on line 12
+
+infractype () {
+	while read -r line; do
+	if [[ $line == *"PARK ON PRIVATE PROPERTY"* ]]; then
+		echo $line >> infractiontype.csv #for every line that matches "park on private property", that line is echoed and appended to the csv file. 
+	fi
+done < $1
+echo All information regarding infraction type PARK ON PRIVATE PROPERTY is saved in infractiontype.csv file on Desktop. 
+return
+}
+
+infractype parking_data.csv #please see comment on line 12
+
+
+
+
+
+
+
+
+
+
